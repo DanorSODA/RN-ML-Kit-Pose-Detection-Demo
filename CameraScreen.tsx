@@ -5,19 +5,11 @@ import {
   CameraPosition,
   useCameraDevice,
   useCameraFormat,
-  useFrameProcessor,
   useSkiaFrameProcessor,
 } from "react-native-vision-camera";
-import { Worklets } from "react-native-worklets-core";
 import { detectPose } from "./poseDetector";
-import type { Frame, PoseDetectionOptions, PoseType } from "./types";
-import {
-  PaintStyle,
-  SkCanvas,
-  Skia,
-  SkPaint,
-  SkRect,
-} from "@shopify/react-native-skia";
+import type { PoseDetectionOptions, PoseType } from "./types";
+import { PaintStyle, Skia } from "@shopify/react-native-skia";
 
 const CameraScreen = () => {
   const [position, setPosition] = useState<CameraPosition>("back");
@@ -27,7 +19,6 @@ const CameraScreen = () => {
     { fps: 60 },
   ]);
   const camerafps = format?.maxFps;
-  console.log("camerafps:", camerafps);
   const pixelFormat = Platform.OS === "ios" ? "rgb" : "yuv";
 
   const frameProcessor = useSkiaFrameProcessor((frame) => {
@@ -39,6 +30,8 @@ const CameraScreen = () => {
         performanceMode: "min",
       };
       const pose: PoseType = detectPose(frame, options);
+      // for tesing:
+      //   console.log("pose:", JSON.stringify(pose, null, 2));
 
       if (pose) {
         const pointsToDraw = [
