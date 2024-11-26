@@ -1,15 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
-import CameraScreen from "./CameraScreen";
+import PoseDetectionScreen from "./PoseDetectionScreen";
 
 export default function App() {
-  return <CameraScreen />;
+  return <PoseDetectionScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

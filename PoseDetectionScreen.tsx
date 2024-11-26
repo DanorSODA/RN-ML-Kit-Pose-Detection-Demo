@@ -1,3 +1,19 @@
+/**
+ * @file PoseDetectionScreen.tsx
+ * @author Danor S.O.D.A
+ * @lastEdited 26-11-2024
+ *
+ * @description
+ * PoseDetectionScreen is a React Native component that implements real-time pose detection
+ * using the device's camera. It utilizes Vision Camera for camera access and ML Kit
+ * for pose detection, rendering skeletal overlays on detected poses.
+ *
+ * Features:
+ * - Real-time pose detection and visualization
+ * - Camera flip functionality (front/back)
+ * - Colored skeletal connections
+ * - FPS monitoring
+ */
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View, Platform, Text } from "react-native";
 import {
@@ -8,12 +24,20 @@ import {
   useSkiaFrameProcessor,
 } from "react-native-vision-camera";
 import { detectPose } from "./utils/poseDetector";
-import type { PoseType } from "./utils/types";
+import { PoseConnections, type PoseType } from "./utils/types";
 import { PaintStyle, Skia } from "@shopify/react-native-skia";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-const CameraScreen = () => {
+/**
+ * PoseDetectionScreen Component
+ *
+ * @component
+ * @returns {JSX.Element} The rendered camera screen component
+ */
+const PoseDetectionScreen = () => {
+  // State for managing camera position (front/back)
   const [position, setPosition] = useState<CameraPosition>("back");
+  // Camera setup hooks
   const device = useCameraDevice(position);
   const format = useCameraFormat(device, [
     { videoResolution: { width: 1920, height: 1080 } },
@@ -22,76 +46,59 @@ const CameraScreen = () => {
   const camerafps = format?.maxFps;
   const pixelFormat = Platform.OS === "ios" ? "rgb" : "yuv";
 
+  /**
+   * Frame processor for pose detection and visualization
+   * Processes each frame to detect poses and draw skeletal overlays
+   */
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     "worklet";
     try {
       frame.render();
       const poses: PoseType = detectPose(frame);
-      // for tesing:
-      //   console.log("pose:", JSON.stringify(pose, null, 2));
 
       if (poses) {
-        const pointsToDraw = [
-          poses.leftShoulder,
-          poses.rightShoulder,
-          poses.leftHip,
-          poses.rightHip,
-        ];
+        // Point visualization setup
+        const pointPaint = Skia.Paint();
+        pointPaint.setColor(Skia.Color("white"));
+        pointPaint.setStyle(PaintStyle.Fill);
 
-        // Draw points
-        pointsToDraw.forEach((point) => {
+        // Draw landmark points
+        Object.entries(poses).forEach(([_, point]) => {
           if (point?.x != null && point?.y != null) {
-            const redPaint = Skia.Paint();
-            redPaint.setColor(Skia.Color("red"));
-            redPaint.setStyle(PaintStyle.Fill);
-
-            frame.drawCircle(point.x, point.y, 10, redPaint);
+            frame.drawCircle(point.x, point.y, 8, pointPaint);
           }
         });
 
-        // Draw lines connecting points
-        const linePaint = Skia.Paint();
-        linePaint.setColor(Skia.Color("red"));
-        linePaint.setStyle(PaintStyle.Stroke);
-        linePaint.setStrokeWidth(4);
+        // Draw skeletal connections
+        PoseConnections.forEach(
+          ({ points: [startPoint, endPoint], color, width }) => {
+            const start = poses[startPoint as keyof PoseType];
+            const end = poses[endPoint as keyof PoseType];
 
-        // Connect leftShoulder and leftHip
-        if (
-          poses.leftShoulder?.x != null &&
-          poses.leftShoulder?.y != null &&
-          poses.leftHip?.x != null &&
-          poses.leftHip?.y != null
-        ) {
-          frame.drawLine(
-            poses.leftShoulder.x,
-            poses.leftShoulder.y,
-            poses.leftHip.x,
-            poses.leftHip.y,
-            linePaint
-          );
-        }
+            if (
+              start?.x != null &&
+              start?.y != null &&
+              end?.x != null &&
+              end?.y != null
+            ) {
+              const linePaint = Skia.Paint();
+              linePaint.setColor(Skia.Color(color));
+              linePaint.setStyle(PaintStyle.Stroke);
+              linePaint.setStrokeWidth(width);
 
-        // Connect rightShoulder and rightHip
-        if (
-          poses.rightShoulder?.x != null &&
-          poses.rightShoulder?.y != null &&
-          poses.rightHip?.x != null &&
-          poses.rightHip?.y != null
-        ) {
-          frame.drawLine(
-            poses.rightShoulder.x,
-            poses.rightShoulder.y,
-            poses.rightHip.x,
-            poses.rightHip.y,
-            linePaint
-          );
-        }
+              frame.drawLine(start.x, start.y, end.x, end.y, linePaint);
+            }
+          }
+        );
       }
     } catch (error) {
       console.warn("Error detecting pose:", error);
     }
   }, []);
 
+  /**
+   * Request camera permissions on component mount
+   */
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
@@ -101,6 +108,7 @@ const CameraScreen = () => {
     })();
   }, []);
 
+  // Return early if no camera device is available
   if (!device) {
     return (
       <View style={styles.container}>
@@ -109,6 +117,9 @@ const CameraScreen = () => {
     );
   }
 
+  /**
+   * Toggle between front and back camera
+   */
   const flipCamera = useCallback(() => {
     setPosition((pos) => (pos === "front" ? "back" : "front"));
   }, []);
@@ -138,6 +149,9 @@ const CameraScreen = () => {
   );
 };
 
+/**
+ * Component styles
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -151,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CameraScreen;
+export default PoseDetectionScreen;
