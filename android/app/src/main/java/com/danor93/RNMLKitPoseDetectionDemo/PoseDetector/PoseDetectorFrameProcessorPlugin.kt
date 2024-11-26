@@ -2,7 +2,7 @@
  * PoseDetectorFrameProcessorPlugin
  *
  * Author: Danor S.O.D.A
- * Last Edited: 2024-11-25
+ * Last Edited: 26-11-2024
  *
  * This file implements a custom frame processor plugin for detecting human poses using Google's ML Kit.
  * The plugin integrates with VisionCamera's frame processing system to analyze frames for pose landmarks.
@@ -36,6 +36,17 @@
   */
  class PoseDetectorFrameProcessorPlugin(proxy: VisionCameraProxy, options: Map<String, Any>?) : FrameProcessorPlugin() {
  
+     // Create a single instance of PoseDetector to reuse
+     private val poseDetector = PoseDetection.getClient(
+         PoseDetectorOptions.Builder()
+             .setDetectorMode(PoseDetectorOptions.STREAM_MODE) // Always use STREAM_MODE for real-time
+             .setPreferredHardwareConfigs(PoseDetectorOptions.CPU_GPU)
+             .build()
+     )
+ 
+     // Track if detector is busy
+     private var isProcessing = false
+ 
      /**
       * Processes the given camera frame to detect pose landmarks.
       *
@@ -44,37 +55,21 @@
       * @return A HashMap containing detected pose landmarks with their coordinates.
       */
      override fun callback(frame: Frame, arguments: Map<String, Any>?): HashMap<String, Any> {
+         // Skip frame if detector is busy
+         if (isProcessing) {
+             return HashMap()
+         }
+ 
          try {
-             // Configure Pose Detector options
-             val optionsBuilder = PoseDetectorOptions.Builder()
+             isProcessing = true
  
-             // Set detection mode based on input arguments
-             val mode = if (arguments?.get("mode") == "stream") {
-                 PoseDetectorOptions.STREAM_MODE
-             } else {
-                 PoseDetectorOptions.SINGLE_IMAGE_MODE
-             }
-             optionsBuilder.setDetectorMode(mode)
- 
-             // Set performance mode based on input arguments
-             val performanceMode = if (arguments?.get("performanceMode") == "min") {
-                 PoseDetectorOptions.CPU
-             } else {
-                 PoseDetectorOptions.CPU_GPU
-             }
-             optionsBuilder.setPreferredHardwareConfigs(performanceMode)
- 
-             // Initialize the pose detector
-             val poseDetector = PoseDetection.getClient(optionsBuilder.build())
- 
-             // Extract the image and orientation from the frame
              val mediaImage: Image = frame.image ?: throw Exception("No image available in the frame.")
              val orientation: Orientation = Orientation.fromUnionValue(frame.orientation.toString())
- 
-             // Create an InputImage instance for ML Kit
+             
+             // Create InputImage with YUV_420_888 format for better performance
              val image = InputImage.fromMediaImage(mediaImage, orientation.toSurfaceRotation())
              
-             // Perform pose detection
+             // Process pose detection
              val pose: Pose = Tasks.await(poseDetector.process(image))
  
              // Prepare the map to store pose landmarks
@@ -133,6 +128,8 @@
              return map.toHashMap()
          } catch (e: Exception) {
              throw Exception("Error processing pose detection: ${e.message}")
+         } finally {
+             isProcessing = false
          }
      }
  }

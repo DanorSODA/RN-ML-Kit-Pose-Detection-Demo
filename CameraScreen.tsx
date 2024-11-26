@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View, Platform, Text } from "react-native";
 import {
   Camera,
@@ -7,9 +7,10 @@ import {
   useCameraFormat,
   useSkiaFrameProcessor,
 } from "react-native-vision-camera";
-import { detectPose } from "./poseDetector";
-import type { PoseDetectionOptions, PoseType } from "./types";
+import { detectPose } from "./utils/poseDetector";
+import type { PoseType } from "./utils/types";
 import { PaintStyle, Skia } from "@shopify/react-native-skia";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const CameraScreen = () => {
   const [position, setPosition] = useState<CameraPosition>("back");
@@ -25,20 +26,16 @@ const CameraScreen = () => {
     "worklet";
     try {
       frame.render();
-      const options: PoseDetectionOptions = {
-        mode: "stream",
-        performanceMode: "min",
-      };
-      const pose: PoseType = detectPose(frame, options);
+      const poses: PoseType = detectPose(frame);
       // for tesing:
       //   console.log("pose:", JSON.stringify(pose, null, 2));
 
-      if (pose) {
+      if (poses) {
         const pointsToDraw = [
-          pose.leftShoulder,
-          pose.rightShoulder,
-          pose.leftHip,
-          pose.rightHip,
+          poses.leftShoulder,
+          poses.rightShoulder,
+          poses.leftHip,
+          poses.rightHip,
         ];
 
         // Draw points
@@ -60,32 +57,32 @@ const CameraScreen = () => {
 
         // Connect leftShoulder and leftHip
         if (
-          pose.leftShoulder?.x != null &&
-          pose.leftShoulder?.y != null &&
-          pose.leftHip?.x != null &&
-          pose.leftHip?.y != null
+          poses.leftShoulder?.x != null &&
+          poses.leftShoulder?.y != null &&
+          poses.leftHip?.x != null &&
+          poses.leftHip?.y != null
         ) {
           frame.drawLine(
-            pose.leftShoulder.x,
-            pose.leftShoulder.y,
-            pose.leftHip.x,
-            pose.leftHip.y,
+            poses.leftShoulder.x,
+            poses.leftShoulder.y,
+            poses.leftHip.x,
+            poses.leftHip.y,
             linePaint
           );
         }
 
         // Connect rightShoulder and rightHip
         if (
-          pose.rightShoulder?.x != null &&
-          pose.rightShoulder?.y != null &&
-          pose.rightHip?.x != null &&
-          pose.rightHip?.y != null
+          poses.rightShoulder?.x != null &&
+          poses.rightShoulder?.y != null &&
+          poses.rightHip?.x != null &&
+          poses.rightHip?.y != null
         ) {
           frame.drawLine(
-            pose.rightShoulder.x,
-            pose.rightShoulder.y,
-            pose.rightHip.x,
-            pose.rightHip.y,
+            poses.rightShoulder.x,
+            poses.rightShoulder.y,
+            poses.rightHip.x,
+            poses.rightHip.y,
             linePaint
           );
         }
@@ -112,6 +109,10 @@ const CameraScreen = () => {
     );
   }
 
+  const flipCamera = useCallback(() => {
+    setPosition((pos) => (pos === "front" ? "back" : "front"));
+  }, []);
+
   return (
     <View style={styles.container}>
       <Camera
@@ -124,6 +125,15 @@ const CameraScreen = () => {
         frameProcessor={frameProcessor}
         enableFpsGraph={true}
       />
+
+      {/* Flip Camera Button */}
+      <MaterialIcons
+        name={Platform.OS === "ios" ? "flip-camera-ios" : "flip-camera-android"}
+        size={40}
+        color="white"
+        style={styles.flipButton}
+        onPress={flipCamera}
+      />
     </View>
   );
 };
@@ -132,6 +142,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "black",
+  },
+  flipButton: {
+    position: "absolute",
+    bottom: 30,
+    left: 20,
+    padding: 10,
   },
 });
 

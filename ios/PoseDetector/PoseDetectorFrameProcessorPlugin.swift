@@ -3,11 +3,11 @@
 //  RNMLKitPoseDetectionDemo
 //
 //  Author: Danor S.O.D.A
-//  Last Edited: 25/11/2024
+//  Last Edited: 26/11/2024
 //
-//  This file implements a custom frame processor plugin for detecting human poses using ML Kit.
-//  It integrates with VisionCamera to process frames and extract pose landmarks.
-//  The detected landmarks are mapped to their x and y coordinates and returned as a dictionary.
+//  This file defines a custom frame processor plugin for detecting human poses using ML Kit.
+//  It integrates with VisionCamera to process frames and extract pose landmarks in real time.
+//  The detected landmarks are returned as x and y coordinates within a dictionary structure.
 //
 
 import MLKit
@@ -15,85 +15,78 @@ import VisionCamera
 
 /// PoseDetectorFrameProcessorPlugin
 ///
-/// A custom frame processor plugin for VisionCamera that uses ML Kit's Pose Detector
-/// to detect and return human pose landmarks in a given camera frame.
+/// A VisionCamera plugin leveraging ML Kit's Pose Detector to detect human poses in real-time frames.
+/// It extracts pose landmarks with a confidence threshold and returns them as key-value pairs.
 @objc(PoseDetectorFrameProcessorPlugin)
 public class PoseDetectorFrameProcessorPlugin: FrameProcessorPlugin {
-    private var options: PoseDetectorOptions = PoseDetectorOptions()
+    // Pose Detector Options: Configured for optimized streaming mode
+    private lazy var options: PoseDetectorOptions = {
+        let options = PoseDetectorOptions()
+        options.detectorMode = .stream
+        return options
+    }()
+    
+    // Lazy initialization of the Pose Detector
+    private lazy var poseDetector: PoseDetector = {
+        return PoseDetector.poseDetector(options: options)
+    }()
 
-    /// Initializes the PoseDetectorFrameProcessorPlugin.
+    /// Initializes the PoseDetectorFrameProcessorPlugin with the VisionCamera proxy holder and optional configurations.
     ///
     /// - Parameters:
     ///   - proxy: The VisionCamera proxy holder.
-    ///   - options: Configuration options for the plugin.
+    ///   - options: Optional configurations for custom detection settings.
     public override init(proxy: VisionCameraProxyHolder, options: [AnyHashable : Any]! = [:]) {
         super.init(proxy: proxy, options: options)
     }
 
-    /// Processes the given frame to detect pose landmarks.
+    /// Processes the camera frame to detect human poses and landmarks.
     ///
     /// - Parameters:
-    ///   - frame: The frame to process, containing image data and orientation.
-    ///   - arguments: Optional arguments for configuring detection modes.
-    /// - Returns: A dictionary containing pose landmarks and their coordinates.
+    ///   - frame: The frame containing image data and its orientation.
+    ///   - arguments: Additional parameters to adjust processing behavior.
+    /// - Returns: A dictionary containing pose landmarks with their x and y coordinates.
     public override func callback(_ frame: Frame, withArguments arguments: [AnyHashable : Any]?) -> Any {
-        // Set detector mode based on input arguments
-        if let mode = arguments?["mode"] as? String {
-            switch mode {
-            case "stream":
-                options.detectorMode = .stream
-            case "single":
-                options.detectorMode = .singleImage
-            default:
-                options.detectorMode = .stream
-            }
-        }
+        let visionImage = VisionImage(buffer: frame.buffer)
+        visionImage.orientation = frame.orientation
 
-        // Create a VisionImage from the frame buffer
-        let buffer = frame.buffer
-        let orientation = frame.orientation
-        let visionImage = VisionImage(buffer: buffer)
-        visionImage.orientation = orientation
-
-        // Initialize the Pose Detector
-        let poseDetector = PoseDetector.poseDetector(options: options)
-
-        // Process the image to detect poses
         var result: [String: Any] = [:]
         do {
+            // Synchronously detect poses in the current frame
             let poses = try poseDetector.results(in: visionImage)
-            for pose in poses {
-                // Extract and map landmarks
-                for landmarkType in PoseLandmarkWrapper.allCases {
+            
+            // Process only the first detected pose for better performance
+            if let pose = poses.first {
+                PoseLandmarkWrapper.allCases.forEach { landmarkType in
                     if let landmarkData = getLandmarkData(pose: pose, type: landmarkType) {
-                        let landmarkName = landmarkType.description
-                        result[landmarkName] = landmarkData
+                        result[landmarkType.description] = landmarkData
                     }
                 }
             }
         } catch {
-            print("Error detecting poses: \(error.localizedDescription)")
+            print("Pose detection error: \(error.localizedDescription)")
         }
 
         return result
     }
 
-    /// Helper function to extract data for a specific pose landmark.
+    /// Extracts coordinates for a specific pose landmark if its confidence is sufficient.
     ///
     /// - Parameters:
-    ///   - pose: The Pose object containing landmarks.
-    ///   - type: The type of landmark to extract.
-    /// - Returns: A dictionary with x and y coordinates of the landmark, or nil if likelihood is low.
+    ///   - pose: The detected pose containing all landmarks.
+    ///   - type: The specific landmark type to retrieve data for.
+    /// - Returns: A dictionary with `x` and `y` coordinates if likelihood is above 50%; otherwise, nil.
     private func getLandmarkData(pose: Pose, type: PoseLandmarkWrapper) -> [String: CGFloat]? {
         let landmark = pose.landmark(ofType: type.poseLandmarkType)
-        guard landmark.inFrameLikelihood > 0.5 else {
-            return nil
-        }
+        guard landmark.inFrameLikelihood > 0.5 else { return nil }
         return ["x": landmark.position.x, "y": landmark.position.y]
     }
 }
 
-/// Wrapper for PoseLandmarkType to enumerate all available landmarks.
+/// PoseLandmarkWrapper: Enum encapsulating all possible PoseLandmarkTypes.
+///
+/// Provides utility to iterate over all ML Kit Pose landmarks, map them to PoseLandmarkType,
+/// and generate string descriptions for debugging or dictionary keys.
 private enum PoseLandmarkWrapper: CaseIterable {
     case nose, leftEyeInner, leftEye, leftEyeOuter,
          rightEyeInner, rightEye, rightEyeOuter,
@@ -110,7 +103,7 @@ private enum PoseLandmarkWrapper: CaseIterable {
          leftHeel, rightHeel,
          leftToe, rightToe
 
-    /// Maps the enum to the corresponding PoseLandmarkType.
+    /// Maps the enum case to its corresponding PoseLandmarkType.
     var poseLandmarkType: PoseLandmarkType {
         switch self {
         case .nose: return .nose
@@ -147,8 +140,8 @@ private enum PoseLandmarkWrapper: CaseIterable {
         }
     }
 
-    /// Converts the enum to its string description.
+    /// Generates a human-readable description of the landmark type.
     var description: String {
-        String(describing: self)
+        return String(describing: self)
     }
 }

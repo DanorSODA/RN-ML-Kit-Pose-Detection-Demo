@@ -40,13 +40,6 @@ export type PoseType = {
   rightMouth: Point;
 };
 
-export interface PoseDetectionOptions {
-  // @default stream
-  mode?: "stream" | "single";
-  // @default min
-  performanceMode?: "min" | "max";
-}
-
 export type CameraTypes = {
   callback: Function;
   options: PoseDetectionOptions;
