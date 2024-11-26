@@ -58,27 +58,38 @@ yarn android
 
 ## Project Structure
 
+```tree
 RNMLKitPoseDetectionDemo/
-├── [android/]                  # Android native code
-│   └── [app/]
-│       └── [src/]
-│           └── [main/]
-│               └── [java/]
-│                   └── [com/]
-│                       └── [danor93/]
-│                           └── [RNMLKitPoseDetectionDemo/]
-│                               └── [PoseDetector/]
-│                                   └── [PoseDetectorFrameProcessorPlugin.kt](android/app/src/main/java/com/danor93/RNMLKitPoseDetectionDemo/PoseDetector/PoseDetectorFrameProcessorPlugin.kt)
-├── [ios/]                     # iOS native code
-│   └── [PoseDetector/]
-│       └── [PoseDetectorFrameProcessorPlugin.swift](ios/PoseDetector/PoseDetectorFrameProcessorPlugin.swift)
-├── [PoseDetectionScreen.tsx](PoseDetectionScreen.tsx)           # Main camera view component
-├── [poseDetector.ts](poseDetector.ts)           # Pose detection wrapper
-├── [types.ts](types.ts)                  # TypeScript definitions
-├── [package.json](package.json)
-├── [tsconfig.json](tsconfig.json)
-├── [yarn.lock](yarn.lock)
+├── [android/] # Android native code
+│ └── [app/]
+│ └── [src/]
+│ └── [main/]
+│ └── [java/]
+│ └── [com/]
+│ └── [danor93/]
+│ └── [RNMLKitPoseDetectionDemo/]
+│ └── [PoseDetector/]
+│ └── [PoseDetectorFrameProcessorPlugin.kt]
+├── [ios/] # iOS native code
+│ └── [PoseDetector/]
+│ └── [PoseDetectorFrameProcessorPlugin.swift]
+├── [utils/]
+│ └── [poseDetector.ts] # Pose detection wrapper
+│ └── [types.ts] # TypeScript definitions
+├── [PoseDetectionScreen.tsx] # Main camera view component
+├── [package.json]
 └── README.md
+```
+
+### File Links
+
+- [PoseDetectorFrameProcessorPlugin.kt](android/app/src/main/java/com/danor93/RNMLKitPoseDetectionDemo/PoseDetector/PoseDetectorFrameProcessorPlugin.kt)
+- [PoseDetectorFrameProcessorPlugin.swift](ios/PoseDetector/PoseDetectorFrameProcessorPlugin.swift)
+- [PoseDetectionScreen.tsx](./PoseDetectionScreen.tsx)
+- [poseDetector.ts](./utils/poseDetector.ts)
+- [types.ts](./utils/types.ts)
+
+```
 
 ## Usage
 
@@ -99,3 +110,4 @@ The app will request camera permissions on first launch. Once granted, it will b
 ## Support
 
 If you encounter any issues or have questions, please file an issue in the GitHub repository.
+```
