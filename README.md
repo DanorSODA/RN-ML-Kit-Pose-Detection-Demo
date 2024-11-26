@@ -97,8 +97,6 @@ RNMLKitPoseDetectionDemo/
 - [poseDetector.ts](src/utils/poseDetector.ts)
 - [types.ts](src/utils/types.ts)
 
-```
-
 ## Usage
 
 The app will request camera permissions on first launch. Once granted, it will begin detecting poses in real-time and display skeletal points and connections on the screen.
@@ -118,4 +116,3 @@ The app will request camera permissions on first launch. Once granted, it will b
 ## Support
 
 If you encounter any issues or have questions, please file an issue in the GitHub repository.
-```
