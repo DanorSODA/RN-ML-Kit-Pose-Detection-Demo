@@ -61,22 +61,27 @@ yarn android
 ```tree
 RNMLKitPoseDetectionDemo/
 ├── [android/] # Android native code
-│ └── [app/]
-│ └── [src/]
-│ └── [main/]
-│ └── [java/]
-│ └── [com/]
-│ └── [danor93/]
-│ └── [RNMLKitPoseDetectionDemo/]
-│ └── [PoseDetector/]
-│ └── [PoseDetectorFrameProcessorPlugin.kt]
+│   └── [app/]
+│       └── [src/]
+│           └── [main/]
+│               └── [java/]
+│                   └── [com/]
+│                       └── [danor93/]
+│                           └── [RNMLKitPoseDetectionDemo/]
+│                               └── [PoseDetector/]
+│                                   └── [PoseDetectorFrameProcessorPlugin.kt]
 ├── [ios/] # iOS native code
-│ └── [PoseDetector/]
-│ └── [PoseDetectorFrameProcessorPlugin.swift]
-├── [utils/]
-│ └── [poseDetector.ts] # Pose detection wrapper
-│ └── [types.ts] # TypeScript definitions
-├── [PoseDetectionScreen.tsx] # Main camera view component
+│   └── [PoseDetector/]
+│       └── [PoseDetectorFrameProcessorPlugin.swift]
+├── [src/]
+│   ├── [utils/]
+│   │   ├── [hooks/] # Custom hooks
+│   │   │   ├── [useCamera.ts] # Camera setup and controls
+│   │   │   ├── [useCameraPermissions.ts] # Permission management
+│   │   │   └── [useFrameProcessor.ts] # Frame processing and pose detection
+│   │   ├── [poseDetector.ts] # Pose detection wrapper
+│   │   └── [types.ts] # TypeScript definitions
+│   └── [PoseDetectionScreen.tsx] # Main screen component
 ├── [package.json]
 └── README.md
 ```
@@ -85,9 +90,12 @@ RNMLKitPoseDetectionDemo/
 
 - [PoseDetectorFrameProcessorPlugin.kt](android/app/src/main/java/com/danor93/RNMLKitPoseDetectionDemo/PoseDetector/PoseDetectorFrameProcessorPlugin.kt)
 - [PoseDetectorFrameProcessorPlugin.swift](ios/PoseDetector/PoseDetectorFrameProcessorPlugin.swift)
-- [PoseDetectionScreen.tsx](./PoseDetectionScreen.tsx)
-- [poseDetector.ts](./utils/poseDetector.ts)
-- [types.ts](./utils/types.ts)
+- [PoseDetectionScreen.tsx](src/PoseDetectionScreen.tsx)
+- [useCamera.ts](src/utils/hooks/useCamera.ts)
+- [useCameraPermissions.ts](src/utils/hooks/useCameraPermissions.ts)
+- [useFrameProcessor.ts](src/utils/hooks/useFrameProcessor.ts)
+- [poseDetector.ts](src/utils/poseDetector.ts)
+- [types.ts](src/utils/types.ts)
 
 ```
 

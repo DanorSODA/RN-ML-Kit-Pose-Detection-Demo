@@ -15,15 +15,20 @@
  */
 import type { Frame, FrameProcessorPlugin } from "./types";
 import { VisionCameraProxy } from "react-native-vision-camera";
+import { useMemo } from "react";
 
 /**
  * Initialize the pose detection plugin with Vision Camera
  * call for the Android Plugin "PoseDetectorFrameProcessorPlugin.kt" at the "Android/src/main/appName/RNMLKitPoseDetectionDemo/PoseDetector"
- * and the IOS Plugin "PoseDetectorFrameProcessorPlugin.swift" at the "ios/PoseDetector"
+ * and for the iOS Plugin "PoseDetectorFrameProcessorPlugin.swift" at the "ios/PoseDetector"
  * @constant {FrameProcessorPlugin | undefined}
  */
-const plugin: FrameProcessorPlugin | undefined =
-  VisionCameraProxy.initFrameProcessorPlugin("detectPose", {});
+export const usePoseDetectionPlugin = () => {
+  return useMemo(
+    () => VisionCameraProxy.initFrameProcessorPlugin("detectPose", {}),
+    []
+  );
+};
 
 /**
  * Processes a camera frame to detect human poses
@@ -35,8 +40,11 @@ const plugin: FrameProcessorPlugin | undefined =
  *
  * @worklet This function runs on the JS thread marked as a worklet
  */
-export function detectPose(frame: Frame): any {
+export function detectPose(
+  frame: Frame,
+  plugin: FrameProcessorPlugin | undefined
+): any {
   "worklet";
-  if (plugin == null) throw new Error();
+  if (plugin == null) throw new Error("Pose detection plugin not initialized");
   return plugin.call(frame);
 }
