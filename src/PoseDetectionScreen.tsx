@@ -34,7 +34,8 @@ import { useCameraPermissions } from "./utils/hooks/useCameraPermissions";
  * @returns {JSX.Element} The rendered camera screen component
  */
 const PoseDetectionScreen = () => {
-  const { device, format, cameraFps, pixelFormat, flipCamera } = useCamera();
+  const { device, format, cameraFps, pixelFormat, flipCamera, isAppActive } =
+    useCamera();
   const frameProcessor = useFrameProcessor();
   const { status, requestPermission, isLoading } = useCameraPermissions();
 
@@ -82,23 +83,26 @@ const PoseDetectionScreen = () => {
     <View style={styles.container}>
       <Camera
         style={StyleSheet.absoluteFill}
+        isActive={isAppActive}
         device={device}
         format={format}
         pixelFormat={pixelFormat}
         fps={cameraFps}
-        isActive={true}
         frameProcessor={frameProcessor}
         enableFpsGraph={true}
       />
 
       {/* Flip Camera Button */}
-      <MaterialIcons
-        name={Platform.OS === "ios" ? "flip-camera-ios" : "flip-camera-android"}
-        size={40}
-        color="white"
-        style={styles.flipButton}
-        onPress={flipCamera}
-      />
+      <View style={styles.flipButtonContainer}>
+        <MaterialIcons
+          name={
+            Platform.OS === "ios" ? "flip-camera-ios" : "flip-camera-android"
+          }
+          size={40}
+          color="white"
+          onPress={flipCamera}
+        />
+      </View>
     </View>
   );
 };
@@ -111,10 +115,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
   },
-  flipButton: {
+  flipButtonContainer: {
     position: "absolute",
     bottom: 30,
-    left: 20,
+    alignSelf: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 30,
     padding: 10,
   },
   permissionText: {

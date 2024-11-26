@@ -8,8 +8,6 @@ A React Native application that demonstrates real-time pose detection using ML K
 - Support for both iOS and Android platforms
 - High-performance frame processing
 - Visual rendering of pose landmarks using Skia
-- Configurable detection modes (stream/single) and performance settings
-- Camera controls (front/back switching)
 
 ## Prerequisites
 

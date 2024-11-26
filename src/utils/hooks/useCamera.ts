@@ -12,6 +12,8 @@ import {
   useCameraFormat,
 } from "react-native-vision-camera";
 import { Platform } from "react-native";
+import { useAppState } from "@react-native-community/hooks";
+import { useIsFocused } from "@react-navigation/core";
 
 type PixelFormat = "yuv" | "rgb";
 
@@ -31,6 +33,8 @@ interface CameraHookReturn {
   pixelFormat: PixelFormat;
   /** Function to switch between front and back cameras */
   flipCamera: () => void;
+  /** Whether the app is active */
+  isAppActive: boolean;
 }
 
 /**
@@ -42,9 +46,11 @@ interface CameraHookReturn {
 export const useCamera = (): CameraHookReturn => {
   // Initialize camera position state
   const [position, setPosition] = useState<CameraPosition>("back");
-
   // Get camera device based on position
   const device = useCameraDevice(position);
+  const isFocused = useIsFocused();
+  const appState = useAppState();
+  const isAppActive = isFocused && appState === "active";
 
   // Memoize format preferences
   const formatPreferences = useMemo(
@@ -80,6 +86,7 @@ export const useCamera = (): CameraHookReturn => {
       cameraFps,
       pixelFormat,
       flipCamera,
+      isAppActive,
     }),
     [device, format, position, cameraFps, pixelFormat, flipCamera]
   );
