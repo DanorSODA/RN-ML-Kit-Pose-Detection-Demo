@@ -58,7 +58,6 @@ yarn android
 
 ## Project Structure
 
-```
 RNMLKitPoseDetectionDemo/
 ├── [android/]                  # Android native code
 │   └── [app/]
@@ -80,7 +79,6 @@ RNMLKitPoseDetectionDemo/
 ├── [tsconfig.json](tsconfig.json)
 ├── [yarn.lock](yarn.lock)
 └── README.md
-```
 
 ## Usage
 
